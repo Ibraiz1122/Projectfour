@@ -92,8 +92,10 @@ export const CheckoutModal: React.FC = () => {
     setActivePage('account');
   };
 
+  const paypalClientId = import.meta.env.VITE_PAYPAL_CLIENT_ID || "test";
+
   return (
-    <PayPalScriptProvider options={{ clientId: "test", currency: paypalCurrency, intent: "capture" }}>
+    <PayPalScriptProvider options={{ clientId: paypalClientId, currency: paypalCurrency, intent: "capture" }}>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 lg:p-8">
         {/* Backdrop */}
         <div 
