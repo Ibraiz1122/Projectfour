@@ -65,7 +65,7 @@ export const PolicyModal: React.FC = () => {
           <section className="space-y-2">
             <h4 className="font-serif text-base text-[#1A1A1A]">3. Reimbursement Protocol</h4>
             <p>
-              Upon receipt and inspection by our textile conservators in Paris, your full refund will be credited back to your original payment method (Credit card, Shop Pay, or Apple Pay) within 3 to 5 business days.
+              Upon receipt and inspection by our textile conservators in Paris, your full refund will be credited back to your original payment method (PayPal) within 3 to 5 business days.
             </p>
           </section>
         </div>

@@ -263,29 +263,15 @@ export const CartPage: React.FC = () => {
                 <ArrowRight className="w-4 h-4" />
               </button>
 
-              <div className="space-y-2 pt-1">
-                <div className="relative flex py-1 items-center">
-                  <div className="flex-grow border-t border-[#E7E2DA]"></div>
-                  <span className="flex-shrink mx-2 text-[10px] text-[#8C827A] uppercase tracking-wider">or instant express checkout</span>
-                  <div className="flex-grow border-t border-[#E7E2DA]"></div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setIsCheckoutOpen(true)}
-                    className="w-full py-2.5 bg-[#5A31F4] hover:bg-[#4922dc] text-white text-xs font-semibold rounded flex items-center justify-center gap-1.5 transition-colors shadow-sm"
-                  >
-                    <span>shop</span>
-                    <span className="font-light bg-white text-[#5A31F4] px-1 py-0.2 rounded text-[10px] font-bold">Pay</span>
-                  </button>
-                  <button
-                    onClick={() => setIsCheckoutOpen(true)}
-                    className="w-full py-2.5 bg-black hover:bg-[#222] text-white text-xs font-medium rounded flex items-center justify-center gap-1 transition-colors shadow-sm"
-                  >
-                    <span>Apple Pay</span>
-                  </button>
-                </div>
-              </div>
+              <button
+                onClick={() => setIsCheckoutOpen(true)}
+                className="w-full py-3 bg-[#FFC439] hover:bg-[#F2BA36] text-[#003087] rounded transition-colors flex items-center justify-center gap-1 shadow-sm cursor-pointer"
+                title="Instant Checkout with PayPal"
+              >
+                <span className="text-[11px] font-semibold text-[#003087] uppercase tracking-wider mr-1">Instant Checkout with</span>
+                <span className="font-sans font-black italic text-[#003087] text-base leading-none tracking-tight">Pay</span>
+                <span className="font-sans font-black italic text-[#0079C1] text-base leading-none tracking-tight">Pal</span>
+              </button>
             </div>
 
             <div className="pt-2 border-t border-[#E7E2DA] space-y-2 text-[11px] text-[#8C827A]">

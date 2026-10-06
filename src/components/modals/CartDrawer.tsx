@@ -316,40 +316,26 @@ export const CartDrawer: React.FC = () => {
             <div className="space-y-2.5 pt-1">
               <button
                 onClick={handleCheckout}
-                className="w-full bg-[#1A1A1A] hover:bg-black text-[#FAF9F6] py-3.5 px-6 text-xs uppercase tracking-[0.2em] font-medium transition-colors flex items-center justify-center gap-2 group shadow-md btn-tactile"
+                className="w-full bg-[#1A1A1A] hover:bg-black text-[#FAF9F6] py-3.5 px-6 text-xs uppercase tracking-[0.2em] font-medium transition-colors flex items-center justify-center gap-2 group shadow-md btn-tactile cursor-pointer"
               >
                 <span>Check out &bull; {formatPrice(finalTotal)}</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </button>
 
-              {/* Express Checkout Options */}
-              <div className="space-y-1.5 pt-1">
-                <div className="relative flex py-1 items-center">
-                  <div className="flex-grow border-t border-[#E7E2DA]"></div>
-                  <span className="flex-shrink mx-2 text-[10px] text-[#8C827A] uppercase tracking-wider">or instant express checkout</span>
-                  <div className="flex-grow border-t border-[#E7E2DA]"></div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={handleCheckout}
-                    className="w-full py-2 bg-[#5A31F4] hover:bg-[#4922dc] text-white text-xs font-semibold rounded flex items-center justify-center gap-1.5 transition-colors shadow-sm btn-tactile"
-                  >
-                    <span>shop</span>
-                    <span className="font-light bg-white text-[#5A31F4] px-1 py-0.2 rounded text-[10px] font-bold">Pay</span>
-                  </button>
-                  <button
-                    onClick={handleCheckout}
-                    className="w-full py-2 bg-black hover:bg-[#222] text-white text-xs font-medium rounded flex items-center justify-center gap-1 transition-colors shadow-sm btn-tactile"
-                  >
-                    <span>Apple Pay</span>
-                  </button>
-                </div>
-              </div>
+              {/* Express Checkout Options (Official PayPal Only) */}
+              <button
+                onClick={handleCheckout}
+                className="w-full py-2.5 bg-[#FFC439] hover:bg-[#F2BA36] text-[#003087] rounded flex items-center justify-center gap-1 transition-colors shadow-sm btn-tactile cursor-pointer"
+                title="Instant Checkout with PayPal"
+              >
+                <span className="text-[11px] font-medium text-[#003087] uppercase tracking-wider mr-1">Instant Checkout with</span>
+                <span className="font-sans font-black italic text-[#003087] text-sm tracking-tight">Pay</span>
+                <span className="font-sans font-black italic text-[#0079C1] text-sm tracking-tight">Pal</span>
+              </button>
               
               <button
                 onClick={handleViewFullCart}
-                className="w-full bg-transparent border border-[#DCD5C9] hover:border-[#1A1A1A] text-[#1A1A1A] py-2 px-4 text-[11px] uppercase tracking-[0.18em] font-medium transition-colors"
+                className="w-full bg-transparent border border-[#DCD5C9] hover:border-[#1A1A1A] text-[#1A1A1A] py-2 px-4 text-[11px] uppercase tracking-[0.18em] font-medium transition-colors cursor-pointer"
               >
                 View Cart ({cartCount})
               </button>
