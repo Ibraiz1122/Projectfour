@@ -67,9 +67,13 @@ export const Navbar: React.FC = () => {
     setSelectedSubcategoryFilter(null);
     setActivePage(page);
     setIsMegaMenuOpen(false);
+    if (page === 'home') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const navLinks = [
+    { id: 'home', label: 'Home', action: () => navigateTo('home') },
     { id: 'shop', label: 'Shop', action: () => navigateTo('shop') },
     { id: 'collections', label: 'Collections', isDropdown: true },
   ];

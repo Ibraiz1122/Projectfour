@@ -55,18 +55,18 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
           {/* Main Primary Navigation Links */}
           <div className="space-y-3 pb-6 border-b border-[#E7E2DA]">
             <button
+              onClick={() => navigateTo('home')}
+              className="w-full text-left font-serif text-3xl text-[#1A1A1A] hover:text-[#B89758] transition-colors py-1 flex items-center justify-between group"
+            >
+              <span>Home</span>
+              <span className="text-[10px] tracking-widest uppercase font-sans text-[#8C827A] group-hover:text-[#B89758]">Edition 01</span>
+            </button>
+            <button
               onClick={() => navigateTo('shop')}
               className="w-full text-left font-serif text-3xl text-[#1A1A1A] hover:text-[#B89758] transition-colors py-1 flex items-center justify-between group"
             >
               <span>Shop</span>
               <span className="text-[10px] tracking-widest uppercase font-sans text-[#8C827A] group-hover:text-[#B89758]">Ready-to-Wear</span>
-            </button>
-            <button
-              onClick={() => navigateTo('lookbook')}
-              className="w-full text-left font-serif text-3xl text-[#1A1A1A] hover:text-[#B89758] transition-colors py-1 flex items-center justify-between group"
-            >
-              <span>Lookbook</span>
-              <span className="text-[10px] tracking-widest uppercase font-sans text-[#8C827A] group-hover:text-[#B89758]">Campaign 2026</span>
             </button>
           </div>
 
