@@ -312,7 +312,7 @@ export const CartDrawer: React.FC = () => {
               </div>
             </div>
 
-            {/* Action buttons & Express Checkout (Shopify OS 2.0 standard) */}
+            {/* Action buttons (Shopify OS 2.0 standard) */}
             <div className="space-y-2.5 pt-1">
               <button
                 onClick={handleCheckout}
@@ -320,17 +320,6 @@ export const CartDrawer: React.FC = () => {
               >
                 <span>Check out &bull; {formatPrice(finalTotal)}</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </button>
-
-              {/* Express Checkout Options (Official PayPal Only) */}
-              <button
-                onClick={handleCheckout}
-                className="w-full py-2.5 bg-[#FFC439] hover:bg-[#F2BA36] text-[#003087] rounded flex items-center justify-center gap-1 transition-colors shadow-sm btn-tactile cursor-pointer"
-                title="Instant Checkout with PayPal"
-              >
-                <span className="text-[11px] font-medium text-[#003087] uppercase tracking-wider mr-1">Instant Checkout with</span>
-                <span className="font-sans font-black italic text-[#003087] text-sm tracking-tight">Pay</span>
-                <span className="font-sans font-black italic text-[#0079C1] text-sm tracking-tight">Pal</span>
               </button>
               
               <button

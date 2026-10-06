@@ -257,20 +257,10 @@ export const CartPage: React.FC = () => {
             <div className="space-y-3 pt-2">
               <button
                 onClick={() => setIsCheckoutOpen(true)}
-                className="w-full bg-[#1A1A1A] hover:bg-black text-[#FAF9F6] py-4 px-6 text-xs uppercase tracking-[0.24em] font-medium transition-colors flex items-center justify-center gap-2 shadow-lg"
+                className="w-full bg-[#1A1A1A] hover:bg-black text-[#FAF9F6] py-4 px-6 text-xs uppercase tracking-[0.24em] font-medium transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer"
               >
                 <span>Check out &bull; {formatPrice(finalTotal)}</span>
                 <ArrowRight className="w-4 h-4" />
-              </button>
-
-              <button
-                onClick={() => setIsCheckoutOpen(true)}
-                className="w-full py-3 bg-[#FFC439] hover:bg-[#F2BA36] text-[#003087] rounded transition-colors flex items-center justify-center gap-1 shadow-sm cursor-pointer"
-                title="Instant Checkout with PayPal"
-              >
-                <span className="text-[11px] font-semibold text-[#003087] uppercase tracking-wider mr-1">Instant Checkout with</span>
-                <span className="font-sans font-black italic text-[#003087] text-base leading-none tracking-tight">Pay</span>
-                <span className="font-sans font-black italic text-[#0079C1] text-base leading-none tracking-tight">Pal</span>
               </button>
             </div>
 
