@@ -1,0 +1,257 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+@layer base {
+  :root {
+    --font-serif: 'Cormorant Garamond', Georgia, serif;
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  * {
+    border-color: #E7E2DA;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #FAF9F6;
+    color: #1A1A1A;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, .font-serif, .editorial-heading {
+    font-family: var(--font-serif);
+    letter-spacing: -0.015em;
+  }
+}
+
+/* Custom luxury scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #FAF9F6;
+}
+::-webkit-scrollbar-thumb {
+  background: #D8D2C7;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #A89F91;
+}
+
+/* Luxury animations and transitions */
+.transition-luxury {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.img-zoom-container {
+  overflow: hidden;
+}
+.img-zoom-container img {
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.img-zoom-container:hover img {
+  transform: scale(1.04);
+}
+
+/* Hide scrollbars for clean horizontal swipes on mobile */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Luxury marquee for mobile announcement */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: 200%;
+  animation: marquee 24s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Quiet Luxury Motion System */
+.luxury-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.luxury-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.luxury-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.btn-tactile {
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, opacity 0.2s ease, border-color 0.2s ease;
+}
+.btn-tactile:active {
+  transform: scale(0.975);
+}
+
+@keyframes gentle-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.15); }
+}
+.pulse-live {
+  animation: gentle-pulse 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes drawer-slide {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.animate-drawer-in {
+  animation: drawer-slide 0.36s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes luxury-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation: luxury-fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes badge-pop {
+  0% { transform: scale(0.85); }
+  50% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+.animate-badge-pop {
+  animation: badge-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes hero-breathe {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.025); }
+  100% { transform: scale(1); }
+}
+.animate-hero-breathe {
+  animation: hero-breathe 20s ease-in-out infinite;
+}
+
+/* Elastic Wishlist Heart Pop */
+@keyframes heart-elastic {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.32); }
+  65% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+.animate-heart-pop {
+  animation: heart-elastic 0.36s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Page Monograph Dissolve */
+@keyframes page-dissolve {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.page-transition {
+  animation: page-dissolve 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Liquid Gold Shipping Shimmer */
+@keyframes liquid-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer-gold {
+  background: linear-gradient(90deg, #1A1A1A 0%, #B89758 40%, #1A1A1A 80%);
+  background-size: 200% 100%;
+  animation: liquid-shimmer 3s infinite linear;
+}
+
+/* Color Swatch Active Ripple */
+@keyframes swatch-ripple {
+  0% { transform: scale(0.9); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.animate-swatch-active {
+  animation: swatch-ripple 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Quiet Luxury Hotspot Beacon */
+@keyframes beacon-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.65), 0 0 0 0 rgba(184, 151, 88, 0.4);
+  }
+  60% {
+    box-shadow: 0 0 0 9px rgba(255, 255, 255, 0), 0 0 0 16px rgba(184, 151, 88, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0), 0 0 0 0 rgba(184, 151, 88, 0);
+  }
+}
+.animate-beacon {
+  animation: beacon-pulse 2.2s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+}
+
+/* Hotspot Card Reveal */
+@keyframes hotspot-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-hotspot-reveal {
+  animation: hotspot-reveal 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Slide Progress Hairline */
+@keyframes slide-timer {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+
+
