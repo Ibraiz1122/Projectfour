@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useShop } from '../../context/ShopContext';
 import { X, ShieldCheck, Check, Lock, ArrowRight, CreditCard } from 'lucide-react';
+import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 
 export const CheckoutModal: React.FC = () => {
   const {
@@ -14,7 +15,8 @@ export const CheckoutModal: React.FC = () => {
     clearCart,
     setLastPlacedOrder,
     lastPlacedOrder,
-    setActivePage
+    setActivePage,
+    currency
   } = useShop();
 
   // Form State
@@ -28,7 +30,7 @@ export const CheckoutModal: React.FC = () => {
     postalCode: '75006',
     country: 'France',
     shippingMethod: 'express',
-    paymentMethod: 'card',
+    paymentMethod: 'card' as 'card' | 'paypal' | 'applepay' | 'concierge',
     cardNumber: '•••• •••• •••• 4242',
     cardExpiry: '12/28',
     cardCvc: '•••'
@@ -39,10 +41,9 @@ export const CheckoutModal: React.FC = () => {
   const discountAmount = cartTotal * promoDiscount;
   const deliveryFee = formData.shippingMethod === 'express' ? 0 : 25;
   const finalTotal = Math.max(0, cartTotal - discountAmount + (cartTotal >= 500 ? 0 : deliveryFee));
+  const paypalCurrency = ['USD', 'EUR', 'GBP', 'CAD', 'AUD'].includes(currency) ? currency : 'USD';
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const executeOrderPlacement = (paymentMethodLabel?: string) => {
     const orderId = 'AV-' + Math.floor(100000 + Math.random() * 900000);
     const trackingNum = 'DHL-FR-' + Math.floor(100000000 + Math.random() * 900000000);
 
@@ -51,6 +52,7 @@ export const CheckoutModal: React.FC = () => {
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       status: 'Processing' as const,
       trackingNumber: trackingNum,
+      paymentMethod: paymentMethodLabel || formData.paymentMethod,
       items: cart.map(item => ({
         productId: item.product.id,
         name: item.product.name,
@@ -75,6 +77,11 @@ export const CheckoutModal: React.FC = () => {
     clearCart();
   };
 
+  const handlePlaceOrder = (e: React.FormEvent) => {
+    e.preventDefault();
+    executeOrderPlacement();
+  };
+
   const handleFinish = () => {
     setIsCheckoutOpen(false);
     setStep(1);
@@ -82,7 +89,8 @@ export const CheckoutModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-10">
+    <PayPalScriptProvider options={{ clientId: "test", currency: paypalCurrency, intent: "capture" }}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-10">
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-[#0E0E0E]/70 backdrop-blur-md transition-opacity"
@@ -324,10 +332,10 @@ export const CheckoutModal: React.FC = () => {
                 {/* Payment Selection */}
                 <div className="space-y-4 pt-2">
                   <label className="block text-[11px] uppercase tracking-wider font-semibold text-[#4A433D]">
-                    Settlement Method (Demo)
+                    Settlement Method
                   </label>
                   
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, paymentMethod: 'card' })}
@@ -336,6 +344,15 @@ export const CheckoutModal: React.FC = () => {
                       }`}
                     >
                       Credit Card
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, paymentMethod: 'paypal' })}
+                      className={`p-3 border text-xs text-center font-medium transition-colors flex items-center justify-center gap-1.5 ${
+                        formData.paymentMethod === 'paypal' ? 'bg-[#003087] text-white border-[#003087]' : 'bg-white text-[#003087] border-[#DCD5C9] hover:border-[#003087]'
+                      }`}
+                    >
+                      <span className="font-bold tracking-tight">PayPal</span>
                     </button>
                     <button
                       type="button"
@@ -353,10 +370,11 @@ export const CheckoutModal: React.FC = () => {
                         formData.paymentMethod === 'concierge' ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]' : 'bg-white text-[#4A433D] border-[#DCD5C9]'
                       }`}
                     >
-                      Atelier Invoice
+                      Invoice
                     </button>
                   </div>
 
+                  {/* Credit Card Form */}
                   {formData.paymentMethod === 'card' && (
                     <div className="bg-white p-4 border border-[#DCD5C9] space-y-3 text-xs">
                       <div>
@@ -378,6 +396,61 @@ export const CheckoutModal: React.FC = () => {
                       </div>
                     </div>
                   )}
+
+                  {/* PayPal Official SDK Buttons */}
+                  {formData.paymentMethod === 'paypal' && (
+                    <div className="bg-white p-4 sm:p-5 border border-[#DCD5C9] space-y-3 text-xs">
+                      <div className="flex items-center justify-between pb-2 border-b border-[#E7E2DA]">
+                        <span className="text-[11px] uppercase tracking-wider text-[#1A1A1A] font-semibold flex items-center gap-1.5">
+                          <ShieldCheck className="w-3.5 h-3.5 text-[#B89758]" />
+                          PayPal Official SDK
+                        </span>
+                        <span className="text-[10px] text-[#2B5138] font-medium bg-[#E8F3EB] px-2 py-0.5 rounded">
+                          Frontend Client Mode
+                        </span>
+                      </div>
+
+                      <div className="pt-2 min-h-[46px]">
+                        <PayPalButtons
+                          style={{
+                            layout: "vertical",
+                            color: "gold",
+                            shape: "rect",
+                            label: "paypal",
+                            height: 42,
+                            tagline: false
+                          }}
+                          createOrder={(_data, actions) => {
+                            return actions.order.create({
+                              intent: "CAPTURE",
+                              purchase_units: [
+                                {
+                                  description: `Atelier Vérité Order Settlement (${cart.length} pieces)`,
+                                  amount: {
+                                    currency_code: paypalCurrency,
+                                    value: Math.max(1, finalTotal).toFixed(2),
+                                  },
+                                },
+                              ],
+                            });
+                          }}
+                          onApprove={async (data, actions) => {
+                            if (actions.order) {
+                              await actions.order.capture();
+                            }
+                            executeOrderPlacement(`PayPal (Authorized: ${data.orderID || 'COMPLETED'})`);
+                          }}
+                          onError={(err) => {
+                            console.error("PayPal Error:", err);
+                          }}
+                        />
+                      </div>
+
+                      <p className="text-[10px] text-[#8C827A] text-center pt-1">
+                        Encrypted transaction via official PayPal JS SDK. No backend .env credentials required.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-3 pt-2">
@@ -393,7 +466,9 @@ export const CheckoutModal: React.FC = () => {
                     className="flex-1 bg-[#1A1A1A] hover:bg-black text-[#FAF9F6] py-3.5 text-xs uppercase tracking-[0.2em] font-medium transition-colors flex items-center justify-center gap-2"
                   >
                     <ShieldCheck className="w-4 h-4 text-[#B89758]" />
-                    <span>Authorize &amp; Place Order ({formatPrice(finalTotal)})</span>
+                    <span>
+                      {formData.paymentMethod === 'paypal' ? 'Quick Authorize Order with PayPal' : `Authorize & Place Order (${formatPrice(finalTotal)})`}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -494,5 +569,6 @@ export const CheckoutModal: React.FC = () => {
         </div>
       </div>
     </div>
+  </PayPalScriptProvider>
   );
 };
