@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useShop } from '../../context/ShopContext';
-import { X, ShieldCheck, Check, Lock, ArrowRight, CreditCard } from 'lucide-react';
+import { X, Check, ArrowRight, ChevronRight, ChevronLeft, ShieldCheck, Tag } from 'lucide-react';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 
 export const CheckoutModal: React.FC = () => {
@@ -12,6 +12,7 @@ export const CheckoutModal: React.FC = () => {
     formatPrice,
     promoDiscount,
     appliedPromo,
+    applyPromoCode,
     clearCart,
     setLastPlacedOrder,
     lastPlacedOrder,
@@ -20,30 +21,38 @@ export const CheckoutModal: React.FC = () => {
   } = useShop();
 
   // Form State
-  const [step, setStep] = useState<1 | 2 | 3>(1); // 1: Shipping, 2: Delivery & Payment, 3: Success
+  const [step, setStep] = useState<1 | 2 | 3>(1); // 1: Information & Shipping, 2: Payment (PayPal), 3: Confirmation
+  const [discountInput, setDiscountInput] = useState('');
   const [formData, setFormData] = useState({
     email: 'client@atelier-verite.com',
     firstName: 'Eleanor',
     lastName: 'Vance',
     street: '142 Boulevard Saint-Germain',
+    apartment: 'Apartment 4B',
     city: 'Paris',
     postalCode: '75006',
     country: 'France',
     shippingMethod: 'express',
-    paymentMethod: 'card' as 'card' | 'paypal' | 'applepay' | 'concierge',
-    cardNumber: '•••• •••• •••• 4242',
-    cardExpiry: '12/28',
-    cardCvc: '•••'
+    saveInfo: true
   });
 
   if (!isCheckoutOpen) return null;
 
   const discountAmount = cartTotal * promoDiscount;
-  const deliveryFee = formData.shippingMethod === 'express' ? 0 : 25;
-  const finalTotal = Math.max(0, cartTotal - discountAmount + (cartTotal >= 500 ? 0 : deliveryFee));
+  const deliveryFee = 0; // Complimentary DHL express
+  const finalTotal = Math.max(0, cartTotal - discountAmount + deliveryFee);
   const paypalCurrency = ['USD', 'EUR', 'GBP', 'CAD', 'AUD'].includes(currency) ? currency : 'USD';
 
-  const executeOrderPlacement = (paymentMethodLabel?: string) => {
+  const handleApplyPromo = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!discountInput.trim()) return;
+    const success = applyPromoCode(discountInput.trim());
+    if (success) {
+      setDiscountInput('');
+    }
+  };
+
+  const executeOrderPlacement = (paymentLabel = 'PayPal') => {
     const orderId = 'AV-' + Math.floor(100000 + Math.random() * 900000);
     const trackingNum = 'DHL-FR-' + Math.floor(100000000 + Math.random() * 900000000);
 
@@ -52,7 +61,7 @@ export const CheckoutModal: React.FC = () => {
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       status: 'Processing' as const,
       trackingNumber: trackingNum,
-      paymentMethod: paymentMethodLabel || formData.paymentMethod,
+      paymentMethod: paymentLabel,
       items: cart.map(item => ({
         productId: item.product.id,
         name: item.product.name,
@@ -65,7 +74,7 @@ export const CheckoutModal: React.FC = () => {
       total: finalTotal,
       shippingAddress: {
         fullName: `${formData.firstName} ${formData.lastName}`,
-        street: formData.street,
+        street: formData.apartment ? `${formData.street}, ${formData.apartment}` : formData.street,
         city: formData.city,
         postalCode: formData.postalCode,
         country: formData.country
@@ -77,11 +86,6 @@ export const CheckoutModal: React.FC = () => {
     clearCart();
   };
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
-    e.preventDefault();
-    executeOrderPlacement();
-  };
-
   const handleFinish = () => {
     setIsCheckoutOpen(false);
     setStep(1);
@@ -90,485 +94,520 @@ export const CheckoutModal: React.FC = () => {
 
   return (
     <PayPalScriptProvider options={{ clientId: "test", currency: paypalCurrency, intent: "capture" }}>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-10">
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-[#0E0E0E]/70 backdrop-blur-md transition-opacity"
-        onClick={() => step !== 3 && setIsCheckoutOpen(false)}
-      />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 lg:p-8">
+        {/* Backdrop */}
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+          onClick={() => step !== 3 && setIsCheckoutOpen(false)}
+        />
 
-      {/* Main Container */}
-      <div className="relative w-full max-w-4xl bg-[#FAF9F6] border border-[#E7E2DA] shadow-2xl z-10 overflow-hidden max-h-[92vh] flex flex-col">
-        
-        {/* Header */}
-        <div className="p-6 border-b border-[#E7E2DA] flex items-center justify-between bg-white">
-          <div className="flex items-center gap-3">
-            <Lock className="w-4 h-4 text-[#B89758]" />
+        {/* Main Shopify-Style Container */}
+        <div className="relative w-full max-w-5xl bg-white shadow-2xl z-10 overflow-hidden max-h-[94vh] flex flex-col border border-[#E1DBD2]">
+          
+          {/* Top Bar / Breadcrumb Header */}
+          <div className="px-6 py-4.5 border-b border-[#E1DBD2] flex items-center justify-between bg-white shrink-0">
             <div>
-              <span className="font-serif text-xl tracking-[0.16em] uppercase font-medium text-[#1A1A1A]">
-                Atelier Vérité Private Checkout
-              </span>
-              <span className="text-[10px] tracking-widest text-[#8C827A] block">
-                Encrypted Client Portal &bull; Step {step} of 3
-              </span>
+              <h2 className="font-serif text-lg tracking-[0.24em] font-medium text-[#1A1A1A] uppercase">
+                ATELIER VÉRITÉ
+              </h2>
+              {step !== 3 && (
+                <div className="flex items-center gap-1.5 text-[11px] text-[#706B65] mt-1 font-sans">
+                  <span className="text-[#999] hover:text-[#1A1A1A] cursor-pointer" onClick={() => setIsCheckoutOpen(false)}>
+                    Cart
+                  </span>
+                  <ChevronRight className="w-3 h-3 text-[#BBB]" />
+                  <span className={step === 1 ? 'font-semibold text-[#1A1A1A]' : 'text-[#999] cursor-pointer hover:text-[#1A1A1A]'} onClick={() => step === 2 && setStep(1)}>
+                    Information
+                  </span>
+                  <ChevronRight className="w-3 h-3 text-[#BBB]" />
+                  <span className={step === 2 ? 'font-semibold text-[#1A1A1A]' : 'text-[#999]'}>
+                    Payment (PayPal)
+                  </span>
+                </div>
+              )}
             </div>
+
+            {step !== 3 && (
+              <button
+                onClick={() => setIsCheckoutOpen(false)}
+                className="p-1.5 text-[#555] hover:text-[#1A1A1A] hover:bg-[#F2EFE9] rounded-full transition-colors"
+                aria-label="Close Checkout"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
           </div>
 
-          {step !== 3 && (
-            <button
-              onClick={() => setIsCheckoutOpen(false)}
-              className="p-1.5 text-[#1A1A1A] hover:bg-[#EAE5D9] rounded-full transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 sm:p-8">
-          
-          {/* STEP 1: Shipping & Client Contact */}
-          {step === 1 && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <div className="lg:col-span-7 space-y-6">
-                {/* Shopify Express Checkout Banner */}
-                <div className="bg-white border border-[#E7E2DA] p-4 text-center space-y-3">
-                  <span className="text-[11px] uppercase tracking-wider text-[#7A726A] font-medium block">
-                    Express checkout
-                  </span>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setStep(2)}
-                      className="py-2.5 bg-[#5A31F4] hover:bg-[#4922dc] text-white text-xs font-semibold rounded flex items-center justify-center gap-1.5 transition-colors shadow-sm"
-                    >
-                      <span>shop</span>
-                      <span className="font-light bg-white text-[#5A31F4] px-1 py-0.2 rounded text-[10px] font-bold">Pay</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setStep(2)}
-                      className="py-2.5 bg-black hover:bg-[#222] text-white text-xs font-medium rounded flex items-center justify-center gap-1 transition-colors shadow-sm"
-                    >
-                      <span>Apple Pay</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="relative flex py-1 items-center">
-                  <div className="flex-grow border-t border-[#E7E2DA]"></div>
-                  <span className="flex-shrink mx-3 text-[10px] text-[#8C827A] uppercase tracking-wider">or continue with private details</span>
-                  <div className="flex-grow border-t border-[#E7E2DA]"></div>
-                </div>
-
-                <div>
-                  <h3 className="font-serif text-2xl text-[#1A1A1A]">Contact &amp; Shipping Address</h3>
-                  <p className="text-xs text-[#7A726A] mt-1">Please provide your private dispatch coordinates.</p>
-                </div>
-
-                <div className="space-y-4 text-xs">
-                  <div>
-                    <label className="block text-[11px] uppercase tracking-wider font-medium text-[#4A433D] mb-1">
-                      Email for Order Protocol &amp; Tracking
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={e => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full bg-white border border-[#DCD5C9] p-3 text-xs focus:outline-none focus:border-[#1A1A1A]"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[11px] uppercase tracking-wider font-medium text-[#4A433D] mb-1">
-                        First Name
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.firstName}
-                        onChange={e => setFormData({ ...formData, firstName: e.target.value })}
-                        className="w-full bg-white border border-[#DCD5C9] p-3 text-xs focus:outline-none focus:border-[#1A1A1A]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] uppercase tracking-wider font-medium text-[#4A433D] mb-1">
-                        Last Name
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.lastName}
-                        onChange={e => setFormData({ ...formData, lastName: e.target.value })}
-                        className="w-full bg-white border border-[#DCD5C9] p-3 text-xs focus:outline-none focus:border-[#1A1A1A]"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] uppercase tracking-wider font-medium text-[#4A433D] mb-1">
-                      Street Address &amp; Suite
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.street}
-                      onChange={e => setFormData({ ...formData, street: e.target.value })}
-                      className="w-full bg-white border border-[#DCD5C9] p-3 text-xs focus:outline-none focus:border-[#1A1A1A]"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-[11px] uppercase tracking-wider font-medium text-[#4A433D] mb-1">
-                        City
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.city}
-                        onChange={e => setFormData({ ...formData, city: e.target.value })}
-                        className="w-full bg-white border border-[#DCD5C9] p-3 text-xs focus:outline-none focus:border-[#1A1A1A]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] uppercase tracking-wider font-medium text-[#4A433D] mb-1">
-                        Postal Code
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.postalCode}
-                        onChange={e => setFormData({ ...formData, postalCode: e.target.value })}
-                        className="w-full bg-white border border-[#DCD5C9] p-3 text-xs focus:outline-none focus:border-[#1A1A1A]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] uppercase tracking-wider font-medium text-[#4A433D] mb-1">
-                        Country
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.country}
-                        onChange={e => setFormData({ ...formData, country: e.target.value })}
-                        className="w-full bg-white border border-[#DCD5C9] p-3 text-xs focus:outline-none focus:border-[#1A1A1A]"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setStep(2)}
-                  className="w-full bg-[#1A1A1A] hover:bg-black text-[#FAF9F6] py-3.5 text-xs uppercase tracking-[0.2em] font-medium transition-colors flex items-center justify-center gap-2"
-                >
-                  <span>Continue to Shipping &amp; Payment</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Order Manifest Summary */}
-              <div className="lg:col-span-5 bg-white p-6 border border-[#E7E2DA] space-y-4">
-                <h4 className="font-serif text-lg text-[#1A1A1A] pb-2 border-b border-[#E7E2DA]">
-                  Bag Review ({cart.length} items)
-                </h4>
-                <div className="space-y-3 max-h-56 overflow-y-auto divide-y divide-[#E7E2DA]">
-                  {cart.map(item => (
-                    <div key={item.id} className="pt-2 flex items-center gap-3">
-                      <img src={item.product.images[0]} alt="" className="w-12 h-16 object-cover bg-[#ECE8DF]" />
-                      <div className="flex-1 text-xs">
-                        <div className="font-serif text-sm text-[#1A1A1A]">{item.product.name}</div>
-                        <div className="text-[#8C827A]">{item.selectedColor.name} &bull; Size {item.selectedSize}</div>
-                        <div className="font-medium text-[#1A1A1A]">{formatPrice(item.product.price * item.quantity)}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="border-t border-[#E7E2DA] pt-3 text-xs space-y-1">
-                  <div className="flex justify-between"><span>Subtotal:</span><span>{formatPrice(cartTotal)}</span></div>
-                  {appliedPromo && <div className="flex justify-between text-[#2B5138]"><span>Courtesy ({appliedPromo}):</span><span>-{formatPrice(discountAmount)}</span></div>}
-                  <div className="flex justify-between font-serif text-base pt-2 font-medium"><span>Estimated Total:</span><span>{formatPrice(finalTotal)}</span></div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 2: Delivery Options & Payment */}
-          {step === 2 && (
-            <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <div className="lg:col-span-7 space-y-6">
-                <div>
-                  <h3 className="font-serif text-2xl text-[#1A1A1A]">Courier &amp; Settlement</h3>
-                  <p className="text-xs text-[#7A726A] mt-1">Select your preferred courier service and payment method.</p>
-                </div>
-
-                {/* Shipping Method Radio */}
-                <div className="space-y-3">
-                  <label className="block text-[11px] uppercase tracking-wider font-semibold text-[#4A433D]">
-                    Courier Protocol
-                  </label>
-                  <label className="flex items-center justify-between p-3.5 bg-white border border-[#DCD5C9] cursor-pointer text-xs">
-                    <div className="flex items-center gap-3">
-                      <input 
-                        type="radio" 
-                        name="shippingMethod" 
-                        value="express" 
-                        checked={formData.shippingMethod === 'express'}
-                        onChange={() => setFormData({ ...formData, shippingMethod: 'express' })}
-                        className="accent-[#1A1A1A]" 
-                      />
-                      <div>
-                        <strong className="block text-[#1A1A1A]">DHL Express Insured Courier</strong>
-                        <span className="text-[#7A726A]">1-2 business days with white-glove signature delivery</span>
-                      </div>
-                    </div>
-                    <span className="font-medium text-[#1A1A1A]">Complimentary</span>
-                  </label>
-                </div>
-
-                {/* Payment Selection */}
-                <div className="space-y-4 pt-2">
-                  <label className="block text-[11px] uppercase tracking-wider font-semibold text-[#4A433D]">
-                    Settlement Method
-                  </label>
+          {/* Checkout Body: 2 Columns (Form & Order Summary) */}
+          <div className="flex-1 overflow-y-auto">
+            
+            {/* STEPS 1 & 2: Two-column Shopify Grid */}
+            {step !== 3 && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 min-h-full">
+                
+                {/* LEFT COLUMN: Customer Information or Payment (7 cols) */}
+                <div className="lg:col-span-7 p-6 sm:p-8 lg:p-10 space-y-7 border-b lg:border-b-0 lg:border-r border-[#E1DBD2]">
                   
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, paymentMethod: 'card' })}
-                      className={`p-3 border text-xs text-center font-medium transition-colors ${
-                        formData.paymentMethod === 'card' ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]' : 'bg-white text-[#4A433D] border-[#DCD5C9]'
-                      }`}
-                    >
-                      Credit Card
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, paymentMethod: 'paypal' })}
-                      className={`p-3 border text-xs text-center font-medium transition-colors flex items-center justify-center gap-1.5 ${
-                        formData.paymentMethod === 'paypal' ? 'bg-[#003087] text-white border-[#003087]' : 'bg-white text-[#003087] border-[#DCD5C9] hover:border-[#003087]'
-                      }`}
-                    >
-                      <span className="font-bold tracking-tight">PayPal</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, paymentMethod: 'applepay' })}
-                      className={`p-3 border text-xs text-center font-medium transition-colors ${
-                        formData.paymentMethod === 'applepay' ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]' : 'bg-white text-[#4A433D] border-[#DCD5C9]'
-                      }`}
-                    >
-                      Apple Pay
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, paymentMethod: 'concierge' })}
-                      className={`p-3 border text-xs text-center font-medium transition-colors ${
-                        formData.paymentMethod === 'concierge' ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]' : 'bg-white text-[#4A433D] border-[#DCD5C9]'
-                      }`}
-                    >
-                      Invoice
-                    </button>
-                  </div>
-
-                  {/* Credit Card Form */}
-                  {formData.paymentMethod === 'card' && (
-                    <div className="bg-white p-4 border border-[#DCD5C9] space-y-3 text-xs">
-                      <div>
-                        <label className="block text-[10px] uppercase text-[#7A726A] mb-1">Card Number</label>
-                        <div className="flex items-center gap-2 border border-[#DCD5C9] p-2 bg-[#FAF9F6]">
-                          <CreditCard className="w-4 h-4 text-[#8C827A]" />
-                          <input type="text" readOnly value={formData.cardNumber} className="bg-transparent flex-1 focus:outline-none text-xs" />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-[10px] uppercase text-[#7A726A] mb-1">Expires</label>
-                          <input type="text" readOnly value={formData.cardExpiry} className="w-full border border-[#DCD5C9] p-2 bg-[#FAF9F6] text-xs" />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] uppercase text-[#7A726A] mb-1">Security Code</label>
-                          <input type="text" readOnly value={formData.cardCvc} className="w-full border border-[#DCD5C9] p-2 bg-[#FAF9F6] text-xs" />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* PayPal Official SDK Buttons */}
-                  {formData.paymentMethod === 'paypal' && (
-                    <div className="bg-white p-4 sm:p-5 border border-[#DCD5C9] space-y-3 text-xs">
-                      <div className="flex items-center justify-between pb-2 border-b border-[#E7E2DA]">
-                        <span className="text-[11px] uppercase tracking-wider text-[#1A1A1A] font-semibold flex items-center gap-1.5">
-                          <ShieldCheck className="w-3.5 h-3.5 text-[#B89758]" />
-                          PayPal Official SDK
+                  {/* STEP 1: Customer Contact & Shipping Information */}
+                  {step === 1 && (
+                    <div className="space-y-6">
+                      {/* Express Checkout with PayPal */}
+                      <div className="bg-[#FAF8F5] border border-[#E7E2DA] p-4 text-center rounded-sm space-y-2.5">
+                        <span className="text-[10.5px] uppercase tracking-[0.2em] text-[#706B65] font-medium block">
+                          Express checkout
                         </span>
-                        <span className="text-[10px] text-[#2B5138] font-medium bg-[#E8F3EB] px-2 py-0.5 rounded">
-                          Frontend Client Mode
-                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setStep(2)}
+                          className="w-full py-2.5 bg-[#FFC439] hover:bg-[#F2BA36] rounded text-[#003087] font-bold text-sm flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                        >
+                          <span className="italic font-extrabold text-[#003087]">Pay</span>
+                          <span className="italic font-extrabold text-[#0079C1]">Pal</span>
+                        </button>
                       </div>
 
-                      <div className="pt-2 min-h-[46px]">
-                        <PayPalButtons
-                          style={{
-                            layout: "vertical",
-                            color: "gold",
-                            shape: "rect",
-                            label: "paypal",
-                            height: 42,
-                            tagline: false
-                          }}
-                          createOrder={(_data, actions) => {
-                            return actions.order.create({
-                              intent: "CAPTURE",
-                              purchase_units: [
-                                {
-                                  description: `Atelier Vérité Order Settlement (${cart.length} pieces)`,
-                                  amount: {
-                                    currency_code: paypalCurrency,
-                                    value: Math.max(1, finalTotal).toFixed(2),
-                                  },
-                                },
-                              ],
-                            });
-                          }}
-                          onApprove={async (data, actions) => {
-                            if (actions.order) {
-                              await actions.order.capture();
-                            }
-                            executeOrderPlacement(`PayPal (Authorized: ${data.orderID || 'COMPLETED'})`);
-                          }}
-                          onError={(err) => {
-                            console.error("PayPal Error:", err);
-                          }}
+                      <div className="relative flex py-1 items-center">
+                        <div className="flex-grow border-t border-[#E1DBD2]"></div>
+                        <span className="flex-shrink mx-3 text-[10px] text-[#8C827A] uppercase tracking-wider font-medium">
+                          OR
+                        </span>
+                        <div className="flex-grow border-t border-[#E1DBD2]"></div>
+                      </div>
+
+                      {/* Contact Information */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-sm font-semibold text-[#1A1A1A] uppercase tracking-wider">
+                            Contact Information
+                          </h3>
+                        </div>
+                        <input
+                          type="email"
+                          required
+                          placeholder="Email"
+                          value={formData.email}
+                          onChange={e => setFormData({ ...formData, email: e.target.value })}
+                          className="w-full bg-white border border-[#D5CEC5] p-3 text-xs rounded-sm focus:outline-none focus:border-[#1A1A1A] transition-colors"
                         />
                       </div>
 
-                      <p className="text-[10px] text-[#8C827A] text-center pt-1">
-                        Encrypted transaction via official PayPal JS SDK. No backend .env credentials required.
-                      </p>
+                      {/* Shipping Address */}
+                      <div className="space-y-3">
+                        <h3 className="text-sm font-semibold text-[#1A1A1A] uppercase tracking-wider">
+                          Shipping Address
+                        </h3>
+
+                        <div className="space-y-2.5 text-xs">
+                          {/* Country */}
+                          <select
+                            value={formData.country}
+                            onChange={e => setFormData({ ...formData, country: e.target.value })}
+                            className="w-full bg-white border border-[#D5CEC5] p-3 text-xs rounded-sm focus:outline-none focus:border-[#1A1A1A]"
+                          >
+                            <option value="France">France</option>
+                            <option value="United States">United States</option>
+                            <option value="United Kingdom">United Kingdom</option>
+                            <option value="Italy">Italy</option>
+                            <option value="Germany">Germany</option>
+                            <option value="United Arab Emirates">United Arab Emirates</option>
+                            <option value="Canada">Canada</option>
+                            <option value="Pakistan">Pakistan</option>
+                          </select>
+
+                          {/* Names */}
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <input
+                              type="text"
+                              required
+                              placeholder="First name"
+                              value={formData.firstName}
+                              onChange={e => setFormData({ ...formData, firstName: e.target.value })}
+                              className="w-full bg-white border border-[#D5CEC5] p-3 rounded-sm focus:outline-none focus:border-[#1A1A1A]"
+                            />
+                            <input
+                              type="text"
+                              required
+                              placeholder="Last name"
+                              value={formData.lastName}
+                              onChange={e => setFormData({ ...formData, lastName: e.target.value })}
+                              className="w-full bg-white border border-[#D5CEC5] p-3 rounded-sm focus:outline-none focus:border-[#1A1A1A]"
+                            />
+                          </div>
+
+                          {/* Street */}
+                          <input
+                            type="text"
+                            required
+                            placeholder="Address"
+                            value={formData.street}
+                            onChange={e => setFormData({ ...formData, street: e.target.value })}
+                            className="w-full bg-white border border-[#D5CEC5] p-3 rounded-sm focus:outline-none focus:border-[#1A1A1A]"
+                          />
+
+                          {/* Apartment */}
+                          <input
+                            type="text"
+                            placeholder="Apartment, suite, etc. (optional)"
+                            value={formData.apartment}
+                            onChange={e => setFormData({ ...formData, apartment: e.target.value })}
+                            className="w-full bg-white border border-[#D5CEC5] p-3 rounded-sm focus:outline-none focus:border-[#1A1A1A]"
+                          />
+
+                          {/* City & Postal */}
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <input
+                              type="text"
+                              required
+                              placeholder="Postal code"
+                              value={formData.postalCode}
+                              onChange={e => setFormData({ ...formData, postalCode: e.target.value })}
+                              className="w-full bg-white border border-[#D5CEC5] p-3 rounded-sm focus:outline-none focus:border-[#1A1A1A]"
+                            />
+                            <input
+                              type="text"
+                              required
+                              placeholder="City"
+                              value={formData.city}
+                              onChange={e => setFormData({ ...formData, city: e.target.value })}
+                              className="w-full bg-white border border-[#D5CEC5] p-3 rounded-sm focus:outline-none focus:border-[#1A1A1A]"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Shipping Method */}
+                      <div className="space-y-2.5">
+                        <h3 className="text-sm font-semibold text-[#1A1A1A] uppercase tracking-wider">
+                          Shipping Method
+                        </h3>
+                        <div className="p-3.5 bg-white border border-[#D5CEC5] rounded-sm flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-4 h-4 rounded-full border-4 border-[#1A1A1A] bg-white" />
+                            <div>
+                              <span className="font-semibold text-[#1A1A1A] block">DHL Express Insured Courier</span>
+                              <span className="text-[11px] text-[#706B65]">1-2 business days with white-glove signature</span>
+                            </div>
+                          </div>
+                          <span className="font-semibold text-[#2B5138] uppercase text-[11px] tracking-wider">Free</span>
+                        </div>
+                      </div>
+
+                      {/* Action Button */}
+                      <div className="pt-2 flex items-center justify-between">
+                        <button
+                          type="button"
+                          onClick={() => setIsCheckoutOpen(false)}
+                          className="text-xs text-[#706B65] hover:text-[#1A1A1A] flex items-center gap-1 transition-colors"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                          <span>Return to cart</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setStep(2)}
+                          className="bg-[#1A1A1A] hover:bg-black text-[#FAF9F6] py-3.5 px-7 text-xs uppercase tracking-[0.2em] font-medium transition-colors flex items-center gap-2 shadow-sm rounded-sm"
+                        >
+                          <span>Continue to payment</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 2: Pure PayPal Payment */}
+                  {step === 2 && (
+                    <div className="space-y-6">
+                      {/* Customer Review Summary Box (Shopify Style) */}
+                      <div className="border border-[#E1DBD2] rounded-sm divide-y divide-[#E1DBD2] text-xs">
+                        <div className="p-3 flex items-center justify-between">
+                          <div className="flex gap-4">
+                            <span className="text-[#8C827A] w-14 shrink-0">Contact</span>
+                            <span className="text-[#1A1A1A] font-medium">{formData.email}</span>
+                          </div>
+                          <button onClick={() => setStep(1)} className="text-[11px] text-[#B89758] hover:underline font-medium">
+                            Change
+                          </button>
+                        </div>
+                        <div className="p-3 flex items-center justify-between">
+                          <div className="flex gap-4">
+                            <span className="text-[#8C827A] w-14 shrink-0">Ship to</span>
+                            <span className="text-[#1A1A1A]">{formData.street}, {formData.city}, {formData.postalCode}, {formData.country}</span>
+                          </div>
+                          <button onClick={() => setStep(1)} className="text-[11px] text-[#B89758] hover:underline font-medium">
+                            Change
+                          </button>
+                        </div>
+                        <div className="p-3 flex items-center justify-between">
+                          <div className="flex gap-4">
+                            <span className="text-[#8C827A] w-14 shrink-0">Method</span>
+                            <span className="text-[#1A1A1A]">DHL Express Insured Courier &bull; <strong className="text-[#2B5138]">Free</strong></span>
+                          </div>
+                          <span className="text-[11px] text-[#8C827A]">Included</span>
+                        </div>
+                      </div>
+
+                      {/* Payment Section (Shopify Pure PayPal) */}
+                      <div className="space-y-3">
+                        <div>
+                          <h3 className="text-sm font-semibold text-[#1A1A1A] uppercase tracking-wider">
+                            Payment
+                          </h3>
+                          <p className="text-xs text-[#706B65] mt-0.5">
+                            All transactions are secure and encrypted.
+                          </p>
+                        </div>
+
+                        {/* Exclusive PayPal Box */}
+                        <div className="border border-[#1A1A1A] rounded-sm overflow-hidden bg-white shadow-xs">
+                          {/* Radio Card Header */}
+                          <div className="p-4 bg-[#FAF8F5] border-b border-[#E1DBD2] flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-4 h-4 rounded-full border-4 border-[#003087] bg-white" />
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-bold text-[#003087] italic tracking-tight text-[15px]">PayPal</span>
+                              </div>
+                            </div>
+                            <span className="text-[10px] text-[#2B5138] font-medium bg-[#E8F3EB] px-2 py-0.5 rounded">
+                              Official Client SDK
+                            </span>
+                          </div>
+
+                          {/* Body with Official Embedded PayPal Buttons */}
+                          <div className="p-5 space-y-4 bg-white text-center">
+                            <div className="max-w-xs mx-auto py-2">
+                              <PayPalButtons
+                                style={{
+                                  layout: "vertical",
+                                  color: "gold",
+                                  shape: "rect",
+                                  label: "paypal",
+                                  height: 44,
+                                  tagline: false
+                                }}
+                                createOrder={(_data, actions) => {
+                                  return actions.order.create({
+                                    intent: "CAPTURE",
+                                    purchase_units: [
+                                      {
+                                        description: `Atelier Vérité Order (${cart.length} items)`,
+                                        amount: {
+                                          currency_code: paypalCurrency,
+                                          value: Math.max(1, finalTotal).toFixed(2),
+                                        },
+                                      },
+                                    ],
+                                  });
+                                }}
+                                onApprove={async (data, actions) => {
+                                  if (actions.order) {
+                                    await actions.order.capture();
+                                  }
+                                  executeOrderPlacement(`PayPal (Order ID: ${data.orderID || 'COMPLETED'})`);
+                                }}
+                                onError={(err) => {
+                                  console.error("PayPal Frontend Error:", err);
+                                }}
+                              />
+                            </div>
+
+                            <p className="text-[11px] text-[#706B65] max-w-sm mx-auto leading-relaxed">
+                              After clicking PayPal, you can finalize your transaction safely using your PayPal account balance, linked bank account, or debit/credit card.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Direct Authorize Simulation Button */}
+                      <div className="pt-2 flex items-center justify-between">
+                        <button
+                          type="button"
+                          onClick={() => setStep(1)}
+                          className="text-xs text-[#706B65] hover:text-[#1A1A1A] flex items-center gap-1 transition-colors"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                          <span>Return to information</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => executeOrderPlacement('PayPal (Test Verified)')}
+                          className="bg-[#1A1A1A] hover:bg-black text-[#FAF9F6] py-3.5 px-6 text-xs uppercase tracking-[0.18em] font-medium transition-colors flex items-center gap-2 rounded-sm"
+                        >
+                          <ShieldCheck className="w-4 h-4 text-[#B89758]" />
+                          <span>Complete Order ({formatPrice(finalTotal)})</span>
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
 
-                <div className="flex gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setStep(1)}
-                    className="w-1/3 border border-[#DCD5C9] bg-white text-[#1A1A1A] py-3.5 text-xs uppercase tracking-wider font-medium hover:border-[#1A1A1A]"
-                  >
-                    Back
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 bg-[#1A1A1A] hover:bg-black text-[#FAF9F6] py-3.5 text-xs uppercase tracking-[0.2em] font-medium transition-colors flex items-center justify-center gap-2"
-                  >
-                    <ShieldCheck className="w-4 h-4 text-[#B89758]" />
-                    <span>
-                      {formData.paymentMethod === 'paypal' ? 'Quick Authorize Order with PayPal' : `Authorize & Place Order (${formatPrice(finalTotal)})`}
-                    </span>
-                  </button>
-                </div>
-              </div>
+                {/* RIGHT COLUMN: Shopify Order Summary & Cart Items (5 cols) */}
+                <div className="lg:col-span-5 bg-[#F9F8F6] p-6 sm:p-8 space-y-6">
+                  {/* Cart Items List with Floating Quantity Badges */}
+                  <div className="space-y-4 max-h-64 overflow-y-auto pr-1">
+                    {cart.map(item => (
+                      <div key={item.id} className="flex items-center gap-3.5 text-xs">
+                        {/* Thumbnail with floating count pill */}
+                        <div className="relative w-14 h-18 shrink-0 bg-white border border-[#E1DBD2] rounded-sm overflow-visible">
+                          <img 
+                            src={item.product.images[0]} 
+                            alt={item.product.name} 
+                            className="w-full h-full object-cover rounded-sm"
+                          />
+                          <span className="absolute -top-2 -right-2 w-5 h-5 bg-[#666059] text-white text-[10.5px] font-semibold rounded-full flex items-center justify-center shadow-xs">
+                            {item.quantity}
+                          </span>
+                        </div>
 
-              {/* Order Manifest Summary */}
-              <div className="lg:col-span-5 bg-white p-6 border border-[#E7E2DA] space-y-4">
-                <h4 className="font-serif text-lg text-[#1A1A1A] pb-2 border-b border-[#E7E2DA]">
-                  Recipient Coordinates
-                </h4>
-                <div className="text-xs text-[#59514A] space-y-1">
-                  <p className="font-semibold text-[#1A1A1A]">{formData.firstName} {formData.lastName}</p>
-                  <p>{formData.street}</p>
-                  <p>{formData.city}, {formData.postalCode}</p>
-                  <p>{formData.country}</p>
-                  <p className="text-[#8C827A] pt-1">{formData.email}</p>
-                </div>
-                <div className="border-t border-[#E7E2DA] pt-3 text-xs space-y-1">
-                  <div className="flex justify-between"><span>Garment Subtotal:</span><span>{formatPrice(cartTotal)}</span></div>
-                  {appliedPromo && <div className="flex justify-between text-[#2B5138]"><span>Courtesy ({appliedPromo}):</span><span>-{formatPrice(discountAmount)}</span></div>}
-                  <div className="flex justify-between"><span>Courier Delivery:</span><span>Complimentary</span></div>
-                  <div className="flex justify-between font-serif text-lg pt-3 border-t border-[#E7E2DA] font-medium">
-                    <span>Total Settled:</span>
-                    <span className="font-sans font-semibold">{formatPrice(finalTotal)}</span>
-                  </div>
-                </div>
-              </div>
-            </form>
-          )}
+                        {/* Title and variant */}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-[#1A1A1A] truncate">{item.product.name}</h4>
+                          <span className="text-[11px] text-[#706B65] block">
+                            {item.selectedColor.name} / {item.selectedSize}
+                          </span>
+                        </div>
 
-          {/* STEP 3: Order Confirmation */}
-          {step === 3 && lastPlacedOrder && (
-            <div className="py-12 max-w-xl mx-auto text-center space-y-6">
-              <div className="w-16 h-16 rounded-full bg-[#1A1A1A] text-white flex items-center justify-center mx-auto shadow-xl">
-                <Check className="w-8 h-8 text-[#B89758]" />
-              </div>
-
-              <div>
-                <span className="text-[11px] uppercase tracking-[0.28em] text-[#8C827A] font-medium block">
-                  Order Successfully Authorized
-                </span>
-                <h3 className="font-serif text-3xl sm:text-4xl text-[#1A1A1A] mt-2">
-                  Thank you, {lastPlacedOrder.shippingAddress.fullName}
-                </h3>
-                <p className="text-xs text-[#7A726A] mt-2 max-w-md mx-auto leading-relaxed">
-                  Your order manifest <strong className="text-[#1A1A1A] font-mono">{lastPlacedOrder.id}</strong> has been transmitted to our Italian atelier. A confirmation notice has been sent to {formData.email}.
-                </p>
-              </div>
-
-              {/* Order Card */}
-              <div className="bg-white p-6 border border-[#E7E2DA] text-left space-y-4">
-                <div className="flex items-center justify-between border-b border-[#E7E2DA] pb-3 text-xs">
-                  <div>
-                    <span className="text-[#8C827A] block">Tracking Identification</span>
-                    <span className="font-mono font-medium text-[#1A1A1A]">{lastPlacedOrder.trackingNumber}</span>
-                  </div>
-                  <div>
-                    <span className="text-[#8C827A] block">Status</span>
-                    <span className="text-[#2B5138] font-medium">{lastPlacedOrder.status}</span>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  {lastPlacedOrder.items.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-3 text-xs">
-                      <img src={item.image} alt="" className="w-10 h-14 object-cover bg-[#ECE8DF]" />
-                      <div className="flex-1">
-                        <div className="font-serif text-sm text-[#1A1A1A]">{item.name}</div>
-                        <div className="text-[#8C827A]">{item.color} &bull; Size {item.size} &bull; Qty {item.quantity}</div>
+                        {/* Line total */}
+                        <span className="font-medium text-[#1A1A1A] shrink-0">
+                          {formatPrice(item.product.price * item.quantity)}
+                        </span>
                       </div>
-                      <div className="font-medium">{formatPrice(item.price * item.quantity)}</div>
+                    ))}
+                  </div>
+
+                  {/* Shopify Discount Code Box */}
+                  <form onSubmit={handleApplyPromo} className="flex gap-2 pt-2 border-t border-[#E1DBD2]">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        placeholder="Discount code (e.g. ATELIER15)"
+                        value={discountInput}
+                        onChange={e => setDiscountInput(e.target.value)}
+                        className="w-full bg-white border border-[#D5CEC5] py-2.5 px-3 text-xs rounded-sm focus:outline-none focus:border-[#1A1A1A] uppercase"
+                      />
                     </div>
-                  ))}
+                    <button
+                      type="submit"
+                      className="bg-[#EAE5DF] hover:bg-[#1A1A1A] hover:text-white text-[#1A1A1A] px-4 py-2.5 text-xs font-semibold rounded-sm transition-colors"
+                    >
+                      Apply
+                    </button>
+                  </form>
+
+                  {/* Price Totals Breakdown */}
+                  <div className="border-t border-[#E1DBD2] pt-4 text-xs space-y-2 text-[#5A544E]">
+                    <div className="flex justify-between">
+                      <span>Subtotal</span>
+                      <span className="font-medium text-[#1A1A1A]">{formatPrice(cartTotal)}</span>
+                    </div>
+
+                    {appliedPromo && (
+                      <div className="flex justify-between text-[#2B5138]">
+                        <span className="flex items-center gap-1">
+                          <Tag className="w-3 h-3" />
+                          <span>Discount ({appliedPromo})</span>
+                        </span>
+                        <span>-{formatPrice(discountAmount)}</span>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between">
+                      <span>Shipping</span>
+                      <span className="font-semibold text-[#2B5138] uppercase text-[11px]">Free</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span>Estimated taxes</span>
+                      <span className="text-[#8C827A]">$0.00 (Included)</span>
+                    </div>
+
+                    <div className="border-t border-[#E1DBD2] pt-3 flex items-baseline justify-between text-base font-semibold text-[#1A1A1A]">
+                      <span className="font-medium">Total</span>
+                      <div className="text-right">
+                        <span className="text-[11px] font-normal text-[#8C827A] mr-1.5">{currency}</span>
+                        <span className="font-serif text-xl">{formatPrice(finalTotal)}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="border-t border-[#E7E2DA] pt-3 flex justify-between text-xs font-semibold">
-                  <span>Total Settled:</span>
-                  <span>{formatPrice(lastPlacedOrder.total)}</span>
+              </div>
+            )}
+
+            {/* STEP 3: Authentic Shopify Order Confirmation */}
+            {step === 3 && lastPlacedOrder && (
+              <div className="p-8 sm:p-12 max-w-xl mx-auto text-center space-y-6">
+                <div className="w-16 h-16 rounded-full bg-[#EBF5EE] text-[#2B5138] flex items-center justify-center mx-auto shadow-sm">
+                  <Check className="w-8 h-8 stroke-[2.5]" />
+                </div>
+
+                <div>
+                  <span className="text-[11px] uppercase tracking-[0.25em] text-[#2B5138] font-bold block">
+                    Order Confirmed
+                  </span>
+                  <h3 className="font-serif text-3xl text-[#1A1A1A] mt-1.5">
+                    Thank you, {lastPlacedOrder.shippingAddress.fullName}!
+                  </h3>
+                  <p className="text-xs text-[#706B65] mt-2 leading-relaxed">
+                    Your order <strong className="text-[#1A1A1A] font-mono">{lastPlacedOrder.id}</strong> has been received and confirmed. A dispatch receipt has been sent to {formData.email}.
+                  </p>
+                </div>
+
+                {/* Shopify Order Details Card */}
+                <div className="bg-[#FAF8F5] p-6 border border-[#E1DBD2] rounded-sm text-left space-y-4 text-xs">
+                  <div className="flex items-center justify-between border-b border-[#E1DBD2] pb-3">
+                    <div>
+                      <span className="text-[#8C827A] block text-[10px] uppercase">Carrier &amp; Tracking</span>
+                      <span className="font-mono font-semibold text-[#1A1A1A]">{lastPlacedOrder.trackingNumber}</span>
+                    </div>
+                    <span className="bg-white border border-[#E1DBD2] px-2.5 py-1 text-[10px] uppercase font-bold text-[#2B5138] rounded">
+                      Paid via PayPal
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-[#8C827A] block text-[10px] uppercase">Delivery Address</span>
+                      <p className="text-[#1A1A1A] pt-1">
+                        {lastPlacedOrder.shippingAddress.fullName}<br />
+                        {lastPlacedOrder.shippingAddress.street}<br />
+                        {lastPlacedOrder.shippingAddress.city}, {lastPlacedOrder.shippingAddress.postalCode}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-[#8C827A] block text-[10px] uppercase">Shipping Protocol</span>
+                      <p className="text-[#1A1A1A] pt-1 font-medium">
+                        DHL Express Insured Courier<br />
+                        <span className="text-[#2B5138]">Complimentary</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-[#E1DBD2] pt-3 flex justify-between font-semibold text-sm text-[#1A1A1A]">
+                    <span>Amount Settled:</span>
+                    <span className="font-serif">{formatPrice(lastPlacedOrder.total)}</span>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                  <button
+                    onClick={handleFinish}
+                    className="flex-1 bg-[#1A1A1A] hover:bg-black text-[#FAF9F6] py-3.5 text-xs uppercase tracking-[0.2em] font-medium transition-colors rounded-sm"
+                  >
+                    View in Account &amp; Track
+                  </button>
+                  <button
+                    onClick={() => { setIsCheckoutOpen(false); setStep(1); setActivePage('shop'); }}
+                    className="border border-[#D5CEC5] bg-white text-[#1A1A1A] py-3.5 px-6 text-xs uppercase tracking-[0.2em] font-medium hover:border-[#1A1A1A] rounded-sm"
+                  >
+                    Continue Shopping
+                  </button>
                 </div>
               </div>
+            )}
 
-              <div className="pt-2 flex flex-col sm:flex-row gap-3">
-                <button
-                  onClick={handleFinish}
-                  className="flex-1 bg-[#1A1A1A] hover:bg-black text-[#FAF9F6] py-3.5 text-xs uppercase tracking-[0.2em] font-medium transition-colors"
-                >
-                  View in Client Account &amp; Track
-                </button>
-                <button
-                  onClick={() => { setIsCheckoutOpen(false); setStep(1); setActivePage('shop'); }}
-                  className="border border-[#DCD5C9] bg-white text-[#1A1A1A] py-3.5 px-6 text-xs uppercase tracking-[0.2em] font-medium hover:border-[#1A1A1A]"
-                >
-                  Continue Shopping
-                </button>
-              </div>
-            </div>
-          )}
-
+          </div>
         </div>
       </div>
-    </div>
-  </PayPalScriptProvider>
+    </PayPalScriptProvider>
   );
 };
