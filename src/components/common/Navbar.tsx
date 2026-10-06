@@ -70,13 +70,9 @@ export const Navbar: React.FC = () => {
   };
 
   const navLinks = [
-    { id: 'home', label: 'Home', action: () => navigateTo('home') },
     { id: 'shop', label: 'Shop', action: () => navigateTo('shop') },
     { id: 'collections', label: 'Collections', isDropdown: true },
-    { id: 'about', label: 'About', action: () => navigateTo('about') },
     { id: 'lookbook', label: 'Lookbook', action: () => navigateTo('lookbook') },
-    { id: 'journal', label: 'Journal', action: () => navigateTo('journal') },
-    { id: 'contact', label: 'Contact', action: () => navigateTo('contact') },
   ];
 
   return (
@@ -164,8 +160,8 @@ export const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* 2. CENTER: Navigation Links (Desktop) */}
-          <nav className="hidden lg:flex items-center justify-center gap-5 xl:gap-7 text-[11px] xl:text-[12px] tracking-[0.16em] xl:tracking-[0.18em] uppercase font-medium text-[#2E2925] mx-auto">
+          {/* 2. CENTER: Focused Editorial Navigation (Desktop) */}
+          <nav className="hidden lg:flex items-center justify-center gap-8 xl:gap-12 text-[11.5px] xl:text-[12px] tracking-[0.22em] xl:tracking-[0.26em] uppercase font-medium text-[#2E2925] mx-auto">
             {navLinks.map(link => {
               if (link.isDropdown) {
                 return (

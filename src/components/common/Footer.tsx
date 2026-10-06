@@ -92,15 +92,20 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Column 3: Client Concierge (2 or 3 cols) */}
+          {/* Column 3: Client Care & Concierge */}
           <div className="lg:col-span-2 space-y-3.5">
             <h4 className="text-[11px] uppercase tracking-[0.25em] font-semibold text-[#E6E0D6]">
               Client Care
             </h4>
             <ul className="space-y-2.5 text-xs text-[#A89F91]">
               <li>
-                <button onClick={() => navigateTo('contact')} className="hover:text-white transition-colors">
-                  Client Concierge
+                <button onClick={() => navigateTo('contact')} className="hover:text-white transition-colors font-medium text-[#FAF9F6]">
+                  Contact &amp; Concierge &rarr;
+                </button>
+              </li>
+              <li>
+                <button onClick={() => navigateTo('account')} className="hover:text-white transition-colors">
+                  Client Portal &amp; Orders
                 </button>
               </li>
               <li>
@@ -118,15 +123,10 @@ export const Footer: React.FC = () => {
                   Sizing Protocol
                 </button>
               </li>
-              <li>
-                <button onClick={() => navigateTo('account')} className="hover:text-white transition-colors">
-                  Client Portal &amp; Orders
-                </button>
-              </li>
             </ul>
           </div>
 
-          {/* Column 4: Maison & Stories (3 cols) */}
+          {/* Column 4: Maison & Stories (About, Journal, Lookbook, Home) */}
           <div className="lg:col-span-3 space-y-3.5">
             <h4 className="text-[11px] uppercase tracking-[0.25em] font-semibold text-[#E6E0D6]">
               Maison &amp; Stories
@@ -138,18 +138,23 @@ export const Footer: React.FC = () => {
                 </button>
               </li>
               <li>
+                <button onClick={() => navigateTo('journal')} className="hover:text-white transition-colors">
+                  The Atelier Journal &amp; Gazette
+                </button>
+              </li>
+              <li>
                 <button onClick={() => navigateTo('lookbook')} className="hover:text-white transition-colors">
                   Campaign Lookbooks
                 </button>
               </li>
               <li>
-                <button onClick={() => navigateTo('journal')} className="hover:text-white transition-colors">
-                  The Atelier Journal
+                <button onClick={() => navigateTo('faq')} className="hover:text-white transition-colors">
+                  Frequently Asked Inquiries
                 </button>
               </li>
               <li>
-                <button onClick={() => navigateTo('faq')} className="hover:text-white transition-colors">
-                  Frequently Asked
+                <button onClick={() => navigateTo('home')} className="hover:text-white transition-colors">
+                  Home Edition
                 </button>
               </li>
             </ul>

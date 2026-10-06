@@ -53,48 +53,48 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
         {/* Content list */}
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
           {/* Main Primary Navigation Links */}
-          <div className="space-y-2 pb-6 border-b border-[#E7E2DA]">
-            <button
-              onClick={() => navigateTo('home')}
-              className="w-full text-left font-serif text-2xl text-[#1A1A1A] hover:text-[#B89758] transition-colors py-1 flex items-center justify-between"
-            >
-              <span>Home</span>
-              <span className="text-[10px] tracking-widest uppercase font-sans text-[#8C827A]">Maison</span>
-            </button>
+          <div className="space-y-3 pb-6 border-b border-[#E7E2DA]">
             <button
               onClick={() => navigateTo('shop')}
-              className="w-full text-left font-serif text-2xl text-[#1A1A1A] hover:text-[#B89758] transition-colors py-1 flex items-center justify-between"
+              className="w-full text-left font-serif text-3xl text-[#1A1A1A] hover:text-[#B89758] transition-colors py-1 flex items-center justify-between group"
             >
-              <span>Shop All Archive</span>
-              <span className="text-[10px] tracking-widest uppercase font-sans text-[#8C827A]">Ready-to-Wear</span>
-            </button>
-            <button
-              onClick={() => navigateTo('about')}
-              className="w-full text-left font-serif text-2xl text-[#1A1A1A] hover:text-[#B89758] transition-colors py-1 flex items-center justify-between"
-            >
-              <span>About Atelier</span>
-              <span className="text-[10px] tracking-widest uppercase font-sans text-[#8C827A]">Heritage</span>
+              <span>Shop</span>
+              <span className="text-[10px] tracking-widest uppercase font-sans text-[#8C827A] group-hover:text-[#B89758]">Ready-to-Wear</span>
             </button>
             <button
               onClick={() => navigateTo('lookbook')}
-              className="w-full text-left font-serif text-2xl text-[#1A1A1A] hover:text-[#B89758] transition-colors py-1 flex items-center justify-between"
+              className="w-full text-left font-serif text-3xl text-[#1A1A1A] hover:text-[#B89758] transition-colors py-1 flex items-center justify-between group"
             >
               <span>Lookbook</span>
-              <span className="text-[10px] tracking-widest uppercase font-sans text-[#8C827A]">Edition 08</span>
+              <span className="text-[10px] tracking-widest uppercase font-sans text-[#8C827A] group-hover:text-[#B89758]">Campaign 2026</span>
+            </button>
+          </div>
+
+          {/* Secondary Maison Links */}
+          <div className="space-y-2.5 pb-6 border-b border-[#E7E2DA] text-xs uppercase tracking-[0.2em] font-medium text-[#736B63]">
+            <button
+              onClick={() => navigateTo('home')}
+              className="w-full text-left hover:text-[#1A1A1A] transition-colors py-1 flex items-center justify-between"
+            >
+              <span>Home Edition</span>
+            </button>
+            <button
+              onClick={() => navigateTo('about')}
+              className="w-full text-left hover:text-[#1A1A1A] transition-colors py-1 flex items-center justify-between"
+            >
+              <span>Our Story &amp; Heritage</span>
             </button>
             <button
               onClick={() => navigateTo('journal')}
-              className="w-full text-left font-serif text-2xl text-[#1A1A1A] hover:text-[#B89758] transition-colors py-1 flex items-center justify-between"
+              className="w-full text-left hover:text-[#1A1A1A] transition-colors py-1 flex items-center justify-between"
             >
-              <span>Journal</span>
-              <span className="text-[10px] tracking-widest uppercase font-sans text-[#8C827A]">Gazette</span>
+              <span>The Atelier Journal</span>
             </button>
             <button
               onClick={() => navigateTo('contact')}
-              className="w-full text-left font-serif text-2xl text-[#1A1A1A] hover:text-[#B89758] transition-colors py-1 flex items-center justify-between"
+              className="w-full text-left hover:text-[#1A1A1A] transition-colors py-1 flex items-center justify-between"
             >
-              <span>Contact &amp; Concierge</span>
-              <span className="text-[10px] tracking-widest uppercase font-sans text-[#8C827A]">Support</span>
+              <span>Contact &amp; Concierge &rarr;</span>
             </button>
           </div>
 
