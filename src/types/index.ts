@@ -79,6 +79,12 @@ export interface Order {
   trackingNumber: string;
   items: OrderItem[];
   total: number;
+  subtotal?: number;
+  discount?: number;
+  shippingCost?: number;
+  shippingMethod?: string;
+  paymentMethod?: string;
+  email?: string;
   shippingAddress: {
     fullName: string;
     street: string;

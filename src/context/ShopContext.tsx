@@ -34,6 +34,7 @@ interface ShopContextType {
   appliedPromo: string | null;
   promoDiscount: number;
   applyPromoCode: (code: string) => boolean;
+  removePromoCode: () => void;
   freeShippingThreshold: number;
 
   // Wishlist
@@ -61,6 +62,7 @@ interface ShopContextType {
   currency: 'USD' | 'EUR' | 'GBP' | 'AED' | 'CAD' | 'PKR';
   setCurrency: (c: 'USD' | 'EUR' | 'GBP' | 'AED' | 'CAD' | 'PKR') => void;
   formatPrice: (price: number) => string;
+  convertPrice: (price: number) => number;
 
   // Policy Modal
   activePolicy: 'shipping' | 'returns' | 'privacy' | 'terms' | null;
@@ -320,6 +322,11 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return false;
   };
 
+  const removePromoCode = () => {
+    setAppliedPromo(null);
+    setPromoDiscount(0);
+  };
+
   const toggleWishlist = (productId: string) => {
     const prod = PRODUCTS.find(p => p.id === productId);
     const prodName = prod ? prod.name : 'Garment';
@@ -340,10 +347,12 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const freeShippingThreshold = 500;
 
+  // Converts a USD amount into the active currency (whole units, matching what formatPrice shows)
+  const convertPrice = (price: number): number => Math.round(price * CURRENCY_RATES[currency].rate);
+
   const formatPrice = (price: number): string => {
-    const { symbol, rate } = CURRENCY_RATES[currency];
-    const converted = Math.round(price * rate);
-    return `${symbol}${converted.toLocaleString()}`;
+    const { symbol } = CURRENCY_RATES[currency];
+    return `${symbol}${convertPrice(price).toLocaleString()}`;
   };
 
   return (
@@ -370,6 +379,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
         appliedPromo,
         promoDiscount,
         applyPromoCode,
+        removePromoCode,
         freeShippingThreshold,
         wishlist,
         toggleWishlist,
@@ -389,6 +399,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
         currency,
         setCurrency,
         formatPrice,
+        convertPrice,
         activePolicy,
         setActivePolicy,
         isReviewModalOpen,
