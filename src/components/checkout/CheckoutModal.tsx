@@ -415,7 +415,7 @@ export const CheckoutModal: React.FC = () => {
     document.getElementById('checkout-scroll')?.scrollTo({ top: 0 });
   };
 
-  const paypalClientId = import.meta.env.VITE_PAYPAL_CLIENT_ID || 'test';
+  const paypalClientId = import.meta.env.VITE_PAYPAL_CLIENT_ID || 'AedpuqKn9fKTF4VBBiQxp_R0eI2ejZUVcuYzLsxRw8KNIXuT960lA82HFIyuaQiXeV75AvtsccDogAqQ';
   const orderDescription = `Atelier Vérité order (${cart.reduce((n, i) => n + i.quantity, 0)} items)`;
 
   const discountForm = (
